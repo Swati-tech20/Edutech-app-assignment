@@ -11,13 +11,22 @@ import { useAuth } from '../../store/authStore';
 import { useCourses } from '../../store/courseStore';
 import { logoutUser } from '../../utils/api';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { bookmarks, enrolled } = useCourses();
-  const [avatarUrl, setAvatarUrl] = React.useState(
-     'https://picsum.photos/200/300'
-  );
+  const [avatarUrl, setAvatarUrl] = React.useState('');
+  React.useEffect(() => {
+    const loadAvatar = async () => {
+      const savedAvatar = await AsyncStorage.getItem('avatarUrl');
+      if (savedAvatar) {
+        setAvatarUrl(savedAvatar);
+    }
+  };
+
+  loadAvatar();
+}, []);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -64,7 +73,7 @@ export default function ProfileScreen() {
     if (!result.canceled) {
       const imageUri = result.assets[0].uri;
       setAvatarUrl(imageUri);
-      // Upload to backend/cloudinary/S3
+      await AsyncStorage.setItem('avatarUrl', imageUri);
     }
   };
 
